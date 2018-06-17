@@ -18,6 +18,7 @@ class ReportUI {
 
         this.reportsContainer.appendChild(this.containerRow);
         this.containerRow.appendChild(this.divCol1);
+        this.divCol1.id = report.fbkey;
         this.divCol1.appendChild(this.name);
         this.divCol1.appendChild(this.email);
         this.divCol1.appendChild(this.telefono);
