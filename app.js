@@ -2,8 +2,6 @@ window.addEventListener('load', init, false);
 
 function init() {
 
-  //firebaseInit();
-
   var urlBase = "https://gallopintocalladmin.firebaseio.com/reportes.json";
 
   //Form data
@@ -43,7 +41,7 @@ function init() {
   cancelBtn.onclick = cleanUI;
   updateBtn.onclick = updateBtnOnclick;
 
-  //saveBtnOnClick{};
+
 
   reportsContainer.addEventListener('click', selectReport, false);
 
@@ -111,17 +109,9 @@ function init() {
     report.timestamp = new Date();
     report.estado = pEstado;
 
-    var fbkey = report.fbkey;//guarda el key localmente
-    report.fbkey = null;//xq firebase no guarda objetos con keys nulos
-    //var postJson = '{' + JSON.stringify(fbkey) + ':' JSON.stringify(post) + '}';
+    var fbkey = report.fbkey;
+    report.fbkey = null;
     var reportJson = '{' + JSON.stringify(fbkey) + ':' + JSON.stringify(report) + '}';
-
-    /*var postJson = '{' + JSON.stringify(selectedPostUI.post.fbkey) +
-        ':{"title":' + JSON.stringify(txtTitleCre.value) +
-        ':, "body":' + JSON.stringify(txtBodyCre.value) +
-        ':, "owner":' + JSON.stringify(owner) +
-        ':, "timestamp":' + JSON.stringify(selectedPostUI.post.timestamp) +
-        '}}';*/
 
     request.send(reportJson);
   }
@@ -165,23 +155,19 @@ function init() {
 
   function requestALLReports() {
     var request = new XMLHttpRequest();
-    request.open('GET', urlBase, true);//el ultimo valor indica si es asíncrono o no
+    request.open('GET', urlBase, true);
     request.onreadystatechange = requestALLReportsCallback;
     request.send();
   }
 
-  //se llama todas las veces que va a cambiar el atributo de readysatate
   function requestALLReportsCallback(event) {
 
-    /*request se saca del target xq es quien activa el evento
-    (y además, request pertenece a otro scope)*/
     var request = event.target;
 
     switch (request.readyState) {
       case XMLHttpRequest.DONE:
         switch (request.status) {
           case 200:
-            //limpiar lista de Reports (x si llegan nuevos)
             reports = [];
             var reportsData = JSON.parse(request.responseText);
 
