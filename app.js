@@ -3,17 +3,16 @@ window.addEventListener('load', init, false);
 function init() {
 
   //firebaseInit();
-  
+
   var urlBase = "https://gallopintocalladmin.firebaseio.com/reportes.json";
 
   //Form data
   var nameTxt = document.getElementById('nameTxt'),
-      lastNameTxt = document.getElementById('lastNameTxt'),
-      emailTxt = document.getElementById('emailTxt'),
-      phoneNum = document.getElementById('phoneNum'),
-      cedulaNum = document.getElementById('idNum'),
-      reportTxt = document.getElementById('reportTxt'),
-      stateResuelto = document.getElementById('stateCheck');
+    lastNameTxt = document.getElementById('lastNameTxt'),
+    emailTxt = document.getElementById('emailTxt'),
+    phoneNum = document.getElementById('phoneNum'),
+    cedulaNum = document.getElementById('idNum'),
+    reportTxt = document.getElementById('reportTxt');
 
   //Buttons
   var saveBtn = document.getElementById('saveBtn');
@@ -29,212 +28,126 @@ function init() {
   cancelBtn.hidden = true;
 
   saveBtn.onclick = saveBtnOnClick;
-  deleteBtn.onclick = deleteBtnOnClick;
-  cancelBtn.onclick = cancelBtnOnClick;
+  //saveBtn.onclick = saveBtnOnClick;
+  //deleteBtn.onclick = deleteBtnOnClick;
+  //cancelBtn.onclick = cancelBtnOnClick;
 
-  postContainer.addEventListener('click', selectPost, false);
-
-
-
- 
-
-
-
-
-
-  var getPost = new XMLHttpRequest();
-  getPost.onreadystatechange = function () {
-
-    if (this.readyState == 4 && this.status == 200) {
-
-      var postsData = JSON.parse(getPost.responseText);
-
-      for (const key in postsData) {
-        var postData = postsData[key];
-        //var editable = false;
-        if (postData.owner === owner) {
-          editable = true;
-        }
-
-        var newPost = new Post(key, postData.title, postData.body, postData.owner, postData.timestamp);
-        var newPostUI = new PostUI(newPost, owner);
-        posts.push(newPost);
-
-
-      }
-
-    }
-  };
-  getPost.open("GET", urlBase, true);
-  getPost.send();
-
-
-  function requestAllPost() {
-
-
-
-  }
-
-  function sendPostCallback(event) {
-    var request = event.target;
-    if (request.readyState === XMLHttpRequest.DONE) {
-      if (request.status === 200) {
-        requestAllPost();
-
-      } else {
-        console.log('Error on request: ', request.status)
-      }
-
-    }
-  }
+  //saveBtnOnClick{};
 
   function saveBtnOnClick() {
 
-    if (titleTxt.value === '' || bodyTxt.value === '') {
-      alert('Los datos del post no estan completos');
+
+    if (nameTxt.value === '' || lastNameTxt.value === '' || emailTxt.value === '' || phoneNum.value === '' || cedulaNum.value === '' || reportTxt.value === '') {
+      alert('Los datos del reporte no estan completos');
 
     } else {
-      var post = new Post(null, titleTxt.value, bodyTxt.value, owner, true);
+      var newReport = new Report(null, nameTxt.value, lastNameTxt.value, emailTxt.value, phoneNum.value, cedulaNum.value, reportTxt.value, 'Pendiente', owner, null);
+
+      console.log(newReport);
+      
       var request = new XMLHttpRequest();
       request.open('Post', urlBase, true);
-      request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
-      request.onreadystatechange = sendPostCallback;
-      request.send(JSON.stringify(post));
+      request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+      request.onreadystatechange = sendReportCallback;
+      request.send(JSON.stringify(newReport));
+      cleanUI();
     }
 
-  };
-
-
-  function updatePost(ppostInfo) {
-    console.log(ppostInfo.fbkey + ' ' + ppostInfo.owner);
-    saveBtn.hidden = true;
-    updateBtn.hidden = false;
-    cancelBtn.hidden = false;
-
-    titleTxt.value = ppostInfo.title;
-    bodyTxt.value = ppostInfo.body;
-
-
   }
-  function updateBtnOnClick() {
 
-    console.log('oooooooki');
+  function sendReportCallback(event) {
+    var request = event.target;
+    if (request.readyState === XMLHttpRequest.DONE) {
+      if (request.status === 200) {
+        requestALLReports();
+      } else {
+        console.log('Error on request: ', request.status);
+      }
+    }
+  }
 
+  requestALLReports()
 
+  function requestALLReports() {
     var request = new XMLHttpRequest();
-    request.open('PATCH', urlBase, true);
-    request.onreadystatechange = function () {
-      if (request.readyState === XMLHttpRequest.DONE) {
+    request.open('GET', urlBase, true);//el ultimo valor indica si es asíncrono o no
+    request.onreadystatechange = requestALLReportsCallback;
+    request.send();
+  }
 
-        var post = currentPostSelected;
-        post.title = titleTxt.value;
-        post.body = bodyTxt.value;
-        post.timestamp = new Date();
+  //se llama todas las veces que va a cambiar el atributo de readysatate
+  function requestALLReportsCallback(event) {
 
-        var fbkey = post.fbkey;
-        post.fbkey = null;
-        var postJson = '{' + JSON.stringify(fbkey) + ':' + JSON.stringify(post) + '}';
-
-        request.send(postJson);
-
-      }
-    }
-    request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-
-
-
-
-    saveBtn.hidden = false;
-    updateBtn.hidden = true;
-    cancelBtn.hidden = true;
-
-  };
-
-  function updatePostCallback(event) {
+    /*request se saca del target xq es quien activa el evento
+    (y además, request pertenece a otro scope)*/
     var request = event.target;
 
-    if (request.readyState === XMLHttpRequest.DONE) {
-      if (request.status === 200) {
-        requestAllPost();
-      } else {
-        console.log('Error on request', request.status);
+    switch (request.readyState) {
+      case XMLHttpRequest.DONE:
+        switch (request.status) {
+          case 200:
+            //limpiar lista de Reports (x si llegan nuevos)
+            reports = [];
+            var reportsData = JSON.parse(request.responseText);
 
-      }
+            console.log(reportsData.length);
+
+            for (const key in reportsData) {
+
+              var reportData = reportsData[key];
+              
+              var report = new Report(key, reportData.nombre, reportData.apellido, reportData.email, reportData.telefono, reportData.cedula, reportData.reporte, reportData.estado, reportData.owner, reportData.timestamp);
+
+              
+              reports.push(report);
+
+              updatereportContainer();
+            }
+
+            break;
+
+          case 400: break;
+          case 401: break;
+          default: break;
+
+        }
+        break;
+
+      case XMLHttpRequest.LOADING:
+        console.log('LOADING');
+        break;
+      case XMLHttpRequest.OPENED:
+        console.log('OPENED');
+        break;
+      case XMLHttpRequest.HEADERS_RECEIVED:
+        console.log('HEADERS_RECEIVED');
+        break;
+      case XMLHttpRequest.UNSET:
+        console.log('UNSET');
+        break;
+      default: break;
     }
+
   }
 
-  function cancelBtnOnClick() {
-    console.log('Edicion Cancelada');
+  function updatereportContainer() {
+    var reportContainer = document.getElementById("reportsContainer");
+    reportContainer.innerHTML = '';
 
-    saveBtn.hidden = false;
-    updateBtn.hidden = true;
-    cancelBtn.hidden = true;
+    for (var i = 0; i < reports.length; i++) {
+      var reportUI = new ReportUI(reports[i], owner);
+    }
 
+    cleanUI()
+}
+
+
+  function cleanUI(){
+    nameTxt.value = '';
+    lastNameTxt.value = '';
+    emailTxt.value = '';
+    phoneNum.value = '';
+    cedulaNum.value = '';
+    reportTxt.value = '';
   };
-
-  function deletePostCallback(event) {
-    var request = event.target;
-
-    if (request.readyState === XMLHttpRequest.DONE) {
-      if (request.status === 200) {
-        requestAllPost();
-      } else {
-        console.log('Error on request', request.status);
-
-      }
-    }
-  }
-
-
-  function deleteBtnOnClick(ppostInfo) {
-    console.log(ppostInfo.fbkey);
-
-    if (confirm('Estas seguro de borrar este post')) {
-      var url = "https://theevilmouseblog.firebaseio.com/posts/" + ppostInfo.fbkey + ".json";
-      var request = new XMLHttpRequest();
-      request.open('DELETE', url, true);
-      request.onreadystatechange = deletePostCallback;
-      request.send();
-      //removeSelectedPostStyle();
-    }
-
-  };
-
-
-
-  function selectPost(event) {
-    currentPostSelected = getPostByFbKey(event.target);
-
-    if (event.target.id === 'update') {
-      updatePost(currentPostSelected);
-    } else {
-      if (event.target.id === 'delete') {
-        deleteBtnOnClick(currentPostSelected);
-      }
-    }
-
-
-
-  };
-
-  function getPostByFbKey(target) {
-    var postSelected = null;
-
-    for (var i = 0; i < posts.length; i++) {
-      if (posts[i].fbkey === target.parentElement.id) {
-        postSelected = posts[i];
-        console.log(postSelected);
-      }
-    }
-
-    if (postSelected === null && target.parentElement !== null) {
-      return (target.parentElement);
-    } else {
-      if (postSelected !== null) {
-        return postSelected;
-      } else {
-        return null;
-      }
-    }
-  }
 }

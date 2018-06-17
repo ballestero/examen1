@@ -1,18 +1,22 @@
 class Report {
-    constructor(fbkey, name, lastName, email, telephone, cedula, report, stateResuelto, timestamp){
+    constructor(fbkey, nombre, apellido, email, telefono, cedula, reporte, estado, owner, fecha){
+        //null, nameTxt.value, lastNameTxt.value, emailTxt.value, phoneNum.value, cedulaNum.value, reportTxt.value, stateResuelto, owner
         this.fbkey = fbkey;
-        this.name = name;
-        this.lastName = lastName;
+        this.nombre = nombre;
+        this.apellido = apellido;
         this.email = email;
-        this.telephone = telephone;
+        this.telefono = telefono;
         this.cedula = cedula;
-        this.report = report;
-        this.stateResuelto = stateResuelto;
+        this.reporte = reporte;
+        this.estado = estado;
+        this.owner = owner;
 
-        if (timestamp === null) {
+        if (fecha === null) {
             this.timestamp = new Date();
         } else {
-            this.timestamp = new Date(timestamp);
+            this.timestamp = new Date(fecha);
         }
+
+        
     }
 }

@@ -69,3 +69,7 @@ h3{
     background-color: #ffffff
 }
 
+.pendiente{
+    border-left: red solid 4px;
+}
+
